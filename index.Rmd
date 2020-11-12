@@ -14,7 +14,7 @@ This is my PM566 Final Project website. I will showcase a few interactive visual
 (Your output should look something like this)
 
 <br>
-
+# Lab12
 ```{r setup, message=FALSE, echo=FALSE, warning=FALSE}
 
 library(data.table)
@@ -120,3 +120,94 @@ Done!
 
 <br>
 <br>
+
+
+# Assignment 05 - Interactive Visualization I and II
+
+Using your midterm/final project data, create 3 different interactive visualizations using the tools learned in week 11 class/lab.
+
+Include the visualizations created in 1. on your github.io website.
+```{r}
+# Prep the data 
+library(data.table)
+library(dplyr)
+library(dtplyr)
+library(ggplot2)
+library(plotly)
+library(lubridate)
+library(leaflet)
+library(knitr)
+library(kableExtra)
+library(lubridate)
+
+
+# Download the data and read into data table
+crime<- data.table::fread("/Users/amei/Documents/PM566-Midterm-Project/Crime_Data_from_2020_to_Present.csv")
+rob <- crime[which(crime$'Crm Cd Desc' == 'ROBBERY')]
+```
+
+```{r}
+# deal with the missing data in vict sex
+sex_missing <- sum(rob$`Vict Sex`=='') + sum(rob$`Vict Sex`=='X') + sum(rob$`Vict Sex`=='H')
+sex_missing/length(rob$`Vict Sex`)
+# deal with the missing data in vict age
+age_missing<- sum(rob$`Vict Age`== 0) + sum(rob$`Vict Age`=='')
+age_missing/length(rob$`Vict Age`)
+# deal with the missing data in time
+time_missing<-sum(rob$`TIME OCC`=='')
+# Remove the missing values,unclear and implausible values we found in the previous step
+time_missing/length(rob$`TIME OCC`)
+rob_new<- rob[which(rob$`Vict Sex` != '' & rob$`Vict Sex` != 'X')]
+rob_new<- rob_new[which(rob_new$`Vict Age` != 0 & rob_new$`Vict Age` != '')]
+```
+### Hist of Age by Time
+
+```{r}
+rob_new$time<- cut(rob_new$`TIME OCC`, 
+               breaks=c(0, 600, 1200, 1800, 2400),
+               labels=c("before dawn","moring","afternoon","night"), 
+               right = FALSE)
+
+rob_new %>%
+  filter(!(rob_new$time %in% NA)) %>% 
+  ggplot()+ geom_histogram(mapping=aes(x=rob_new$`Vict Age`,fill=rob_new$time))+
+  scale_fill_brewer(palette = "PuBu")+labs(title="Age by Time category", x="Victom Age", y="count")
+```
+### Barchart of Sex
+
+```{r}
+ggplot(rob_new,aes(x =`Vict Sex`)) + geom_bar(stat = 'count', fill = 'lightpink', colour = 'pink') + labs(title = "Freqs by sex")
+```
+### Barchart of Age
+```{r}
+ggplot(rob_new,aes(x =`Vict Age`)) + geom_bar(stat = 'count', fill = 'lightblue', colour = 'blue') + labs(title = "Freqs by Age")
+```
+
+
+### Multiple line chart of crime counts by locations in November
+
+```{r plot2, class.source="code-r-small"}
+rob_new$`DATE OCC` <- as.Date(substr(rob_new$`DATE OCC`,1,10),"%m/%d/%Y")
+rob_new$month_occurance <- month(rob_new$`DATE OCC`)
+rl <- rob_new[which(rob_new$month_occurance!=11)]
+
+p <- ggplot(rl,aes(x =month_occurance, group=`AREA NAME`, color = `AREA NAME`)) + geom_line(stat = 'count') +geom_point(stat = 'count')+scale_x_continuous(breaks=seq(0, 11, 1)) 
+
+ggplotly(p)
+```
+### Scatter plot
+
+```{r,echo = FALSE,warning=FALSE}
+library(plotly)
+p1 <- ggplot(rob_new)+
+  geom_point(mapping = aes(x = `DATE OCC`, y =`Vict Age` , color = `AREA NAME`))+ theme_classic()
+ggplotly(p1)
+```
+
+### Summary Table
+
+```{r plot3, class.source="code-r-small"}
+library(DT)
+rs <- rob_new %>% select(`DATE OCC`, `AREA NAME`, `Vict Age`,`Vict Sex`,`Weapon Desc`)
+datatable(rs)
+```
