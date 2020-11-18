@@ -6,7 +6,12 @@ navbar:
     - text: "Home"
       href: index.html
     - text: "Lab 12"
-      href: 12-lab.html
+      href: Lab12.html
+    - text: "HW 5"
+      href: HW5.html
+    - text: "Final"
+      href: finalproject.html
+ 
   right:
     - icon: fa-github fa-lg
       href: https://github.com/USCbiostats/PM566
