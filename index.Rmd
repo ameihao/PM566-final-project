@@ -1,5 +1,5 @@
 ---
-title: "Final Project"
+title: "Final Project: 2020 LA County Crime Report"
 author: "Amei Hao"
 output:
   html_document:
@@ -10,48 +10,14 @@ output:
 ---
 
 
-# Final Project: 2020 LA County Crime Report
-
-<br>
 
 
-
-## Introduction 
+## Brief Introduction 
 
 - The project will build base on the crime data from 2020 to present provided by the Los Angeles Police Department. 
 - Here is the link for the original data: https://data.lacity.org/A-Safe-City/Crime-Data-from-2020-to-Present/2nrs-mtv8
-- This dataset I looked up from LA city data, it reflects the incidences of crime in the City of Los Angeles going back to 2020. The main purposes we have: 
-a) The 10 crimes most likely happened in the LA county.
-b) The association between the location where the most crime incidences happened(77th street) and victims’ age, sex and the different time slots of crimes. 
-c) The distribution of the highest incidents of crime(Stolen Vehicle) that happened in city LA county.
-d) The precaution of the criminal activities(Robbery) for college students, list the incidents details in LA county.
 
-<br>
-
-### Data description 
-
-- Date Occ: The date when the crime occurred.
-
-- Time Occ: The time that the crime occurred in 24 hour military time.
-
-- Area Name: The 21 Geographic Areas or Patrol Divisions that it is responsible for. For example 77th Street Division is located at the intersection of South Broadway and 77th Street
-
-- Crm Cd Desc: Defined which crime occurred.
-
-- Vict Age: The age of the injured individual.
-
-- Vict Sex: The sex of the victim.
-
-- LAT: Latitute.
-
-- LON: Lontitute.
-
-## Methods 
-- By EDA, there are 147947 rows and 28 columns in the original crime 2020 to present dataset. We found that there are numerous observations in the dataset, so we decide to focus on the particular parts. The above key variables is what we will use for the project.
-- After preparing the data, I found that there are missing values and implausible values for some variables, so data wrangling is necessary. The format of date that crime occurred is kind of hard to do the analysis, so I transform character to date and group by month, to see if there is a trend of the criminals happened in each month. And I defined the time of crime activities occurrence time into different time slots, 12am-6am as 'nighttime', 6am-12pm as 'morning',12pm-6pm as 'afternoon', 6pm-12am as 'evening', to see if there is a correlation between the criminal activities and different time slots. Histogram would be the choice for me to show the interactive variation in different victim sex groups and age groups. For the bar chart, it is a good tool to show the amount for top 10 criminals.
-- Next, I’ll focus on the most happened crime in Los Angeles, which is vehicle stolen. I generate a Multiple line chart, to see the trend of Vehicle Stolen incident counts by locations from January to September, see if there is any High crime season and location. And generated a leaflet map with detailed locations to see the locations on the street maps, also highlight the most happened area as different colors.
-
-<br>
+ 
 
 ```{r setup, message=FALSE, echo=FALSE, warning=FALSE}
 
@@ -102,7 +68,8 @@ c77$time<- cut(c77$`TIME OCC`,
 
 ```
 
-## Results
+## Plots
+
 ### 1. Histogram: Victim Age Counts by Time slots
 ```{r, echo=FALSE,warning=FALSE,message=FALSE}
  c77 %>%
@@ -244,10 +211,12 @@ datatable(rs)
 
 <br>
 
-## Conclusion
+## Conclusion & Findings
 
-- To sum up, the most dangerous area in city Los Angeles is 77th street. The most of crime incidents happened in LA county are VEHICLE - STOLEN, the second most incidents is battery- simple assault. The vehicle stolen happened in Newton the most. In general, female are more likely to become a target to the criminal suspects. The victim group is concentrated in the youth between 20 and 30 years old.The mean age of victims is 38. And the peak time of the criminal incident happens is in the early morning, and the security situation will get better since afternoon at 77th street in city Los Angeles. Newton was the place happened most vehicle stolen incidents.The frequency of criminals are correlated to victims’ age, sex and the different locations.
+- To sum up, the most dangerous area in city Los Angeles is 77th street. The most of crime incidents happened in LA county are VEHICLE - STOLEN, the second most incidents is battery- simple assault. The vehicle stolen happened in Newton the most. In general, female are more likely to become a target to the criminal suspects. The victim group is concentrated in the youth between 20 and 30 years old. And the peak time of the criminal incident happens is in the early morning, and the security situation will get better since afternoon at 77th street in city Los Angeles. Newton was the place happened most vehicle stolen incidents.The frequency of criminals are correlated to victims’ age, sex and the different locations.
 
 
 ## PDF download link:
+
+https://github.com/ameihao/pm566-final-project/blob/master/Final%20Project_%202020%20LA%20County%20Crime%20Report.pdf
 
