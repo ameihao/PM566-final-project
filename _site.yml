@@ -1,16 +1,16 @@
 name: "my-website"
 output_dir: "."
 navbar:
-  title: "PM566 Final Project"
+  title: "2020 LA County Crime Report"
   left:
-    - text: "Home"
+    - text: "Home-Final Project"
       href: index.html
     - text: "Lab 12"
       href: Lab12.html
     - text: "HW 5"
       href: HW5.html
     - text: "Final"
-      href: finalproject.html
+      href: PM566-Final-Project.html
  
   right:
     - icon: fa-github fa-lg

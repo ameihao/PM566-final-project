@@ -1,10 +1,12 @@
 ---
 title: "Final Project"
 author: "Amei Hao"
-output: 
-    html_document:
-        toc: TRUE
-        toc_float: TRUE
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
 ---
 
 
@@ -12,15 +14,21 @@ output:
 
 <br>
 
+
+
 ## Introduction 
 
-- The project will build base on the crime data from 2020 to present provided by the Los Angeles Police Department. This dataset I looked up from LA city data, it reflects the incidences of crime in the City of Los Angeles going back to 2020. The main purposes we have: 
-a) The association between the location where the most crime incidences happened(77th street) and victims’ age, sex and the different time slots of crimes. 
-b) The distribution of the highest incidents of crime(Stolen Vehicle) that happened in city Los Angeles.
+- The project will build base on the crime data from 2020 to present provided by the Los Angeles Police Department. 
+- Here is the link for the original data: https://data.lacity.org/A-Safe-City/Crime-Data-from-2020-to-Present/2nrs-mtv8
+- This dataset I looked up from LA city data, it reflects the incidences of crime in the City of Los Angeles going back to 2020. The main purposes we have: 
+a) The 10 crimes most likely happened in the LA county.
+b) The association between the location where the most crime incidences happened(77th street) and victims’ age, sex and the different time slots of crimes. 
+c) The distribution of the highest incidents of crime(Stolen Vehicle) that happened in city LA county.
+d) The precaution of the criminal activities(Robbery) for college students, list the incidents details in LA county.
 
 <br>
 
-## Data description 
+### Data description 
 
 - Date Occ: The date when the crime occurred.
 
@@ -38,7 +46,10 @@ b) The distribution of the highest incidents of crime(Stolen Vehicle) that happe
 
 - LON: Lontitute.
 
-- By EDA, there are 147947 rows and 28 columns in the original crime 2020 to present dataset. We found that there are numerous observations in the dataset, so we decide to focus on the particular parts.
+## Methods 
+- By EDA, there are 147947 rows and 28 columns in the original crime 2020 to present dataset. We found that there are numerous observations in the dataset, so we decide to focus on the particular parts. The above key variables is what we will use for the project.
+- After preparing the data, I found that there are missing values and implausible values for some variables, so data wrangling is necessary. The format of date that crime occurred is kind of hard to do the analysis, so I transform character to date and group by month, to see if there is a trend of the criminals happened in each month. And I defined the time of crime activities occurrence time into different time slots, 12am-6am as 'nighttime', 6am-12pm as 'morning',12pm-6pm as 'afternoon', 6pm-12am as 'evening', to see if there is a correlation between the criminal activities and different time slots. Histogram would be the choice for me to show the interactive variation in different victim sex groups and age groups. For the bar chart, it is a good tool to show the amount for top 10 criminals.
+- Next, I’ll focus on the most happened crime in Los Angeles, which is vehicle stolen. I generate a Multiple line chart, to see the trend of Vehicle Stolen incident counts by locations from January to September, see if there is any High crime season and location. And generated a leaflet map with detailed locations to see the locations on the street maps, also highlight the most happened area as different colors.
 
 <br>
 
@@ -58,22 +69,11 @@ library(knitr)
 library(kableExtra)
 library(lubridate)
 
-# INITALIZE CODE CHUNK OPTIONS
-opts_chunk$set(
-  warning = FALSE,
-  message = FALSE,
-  eval=TRUE,
-  echo = FALSE,
-  cache = TRUE,
-  fig.width = 7, 
-  fig.align = 'center',
-  fig.asp = 0.618,
-  out.width = "700px")
 ```
 
 
 
-```{r,echo = FALSE}
+```{r,include= FALSE}
 # Read in the data
 crime<-data.table::fread("/Users/amei/Desktop/USC/PM566/Final/Crime_Data_from_2020_to_Present.csv")
 crime %>%
@@ -81,7 +81,7 @@ crime %>%
 c77th <- crime[which(crime$'AREA NAME' == '77th Street')]
 ```
 
-```{r, echo=FALSE}
+```{r, include=FALSE, warning=FALSE}
 # Remove the missing values,unclear and implausible values 
 c77 <- c77th[which(c77th$`Vict Sex` != '' & c77th$`Vict Sex` != 'X')]
 c77 <- c77[which(c77$`Vict Age` != 0 & c77$`Vict Age` != '')]
@@ -92,7 +92,7 @@ c77 <- c77[which(c77$LON!=0)]
 ```
 
 
-```{r, echo=FALSE}
+```{r, include=FALSE, warning=FALSE}
 c77<- c77[`Vict Age`>14 & `Vict Age`<70]
 c77 <- c77[order(`Vict Age`)]
 c77$time<- cut(c77$`TIME OCC`, 
@@ -102,42 +102,64 @@ c77$time<- cut(c77$`TIME OCC`,
 
 ```
 
+## Results
 ### 1. Histogram: Victim Age Counts by Time slots
-```{r, echo=FALSE}
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
  c77 %>%
   filter(!(c77$time %in% NA)) %>% 
   ggplot()+ geom_histogram(mapping=aes(x=c77$`Vict Age`,fill=c77$time))+
   scale_fill_brewer(palette = "PuBu")+labs(title="Victim Age Counts by Time slots", x="Victim Age", y="count")
 ```
-From the histogram above, we can see that the most crime incidents happen in the early morning, the evening time slot is safer relatively.
 
+- From the histogram above, we can see that the most crime incidents happen in the early morning, the evening time slot is safer relatively. From the X-axis, we can conclude that 25-35 years old people are more likely to be the victims.
 
-### 2. Barchart: Victim Age Freq Counts
-```{r, echo=FALSE}
-ggplot(c77,aes(x =`Vict Age`)) + geom_bar(stat = 'count', fill = 'lightblue', colour = 'lightblue') + labs(title = "Victim Age Freq Counts")
-```
-25-35 age group is the most dangerous potential victims.
-
-
-### Barchart: Victim Sex Freq Counts
-```{r, echo=FALSE}
-ggplot(c77,aes(x =`Vict Sex`)) + geom_bar(stat = 'count', fill = 'lightpink', colour = 'pink') + labs(title = "Victim Sex Freq Counts")
+### Histogram: Victim Age Freq Counts
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
+ c77 %>%
+  filter(!(c77$'Vict Sex' %in% NA)) %>% 
+  ggplot()+ geom_histogram(mapping=aes(x=c77$`Vict Age`,fill=c77$`Vict Sex`))+
+  scale_fill_brewer(palette = "PuRd")+labs(title="Victim Age Counts by victim sex", x="Victim Age", y="count")
 ```
 
-Female is the the more dangerous sex group at the location of 77th Street.
+
+Who would be more likely to be the victims, female or male? And what age group are they?
+
+- 25-35 age group is the most dangerous potential victims.The color of the plot shows obviously that Female is the more dangerous sex group at the location of 77th Street. The criminal incidents happened to female are way more than male, the number of criminals for female victims was twice as male group.
+
+### 2.Barchart: Top 10 crime Freq Counts on 77th Street
+
+<br>
+
+
+```{r, include=FALSE, warning=FALSE}
+c77n <- table(c77$`Crm Cd Desc`)
+c77_10 <- as.data.frame(head(sort(c77n, decreasing = TRUE),10))
+c77_10
+```
 
 
 ```{r, echo=FALSE}
+p <- ggplot(c77_10, mapping = aes(x = substr(as.character(Var1),1,50), y = Freq)) + geom_bar(stat = 'identity',fill = 'lightpink') + xlab('crime name') + theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+ggplotly(p)
+```
+
+Which criminal incident happened the most in LA county throuout 2020?
+
+- From the bar chart we got the result that the most criminals happened was 'Aggravated Assault', it was happened 1014 times in LA county throughout 2020. The deadly weapon related to the assault, which was extremely dangerous.
+
+<br>
+
+### 3. Multiple line chart: Veichle Stolen incident counts by locations from Janurary to September
+
+<br>
+
+```{r, include=FALSE, warning=FALSE}
 crime %>%
   count(`Crm Cd Desc`, sort = TRUE)
 sto <- crime[which(crime$'Crm Cd Desc' == 'VEHICLE - STOLEN')]
 ```
 
-
-### 3. Multiple line chart: Veichle Stolen incident counts by locations from Janurary to September
-
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 
 sto$`DATE OCC` <- as.Date(substr(sto$`DATE OCC`,1,10),"%m/%d/%Y")
 sto$month <- month(sto$`DATE OCC`)
@@ -148,17 +170,22 @@ p <- ggplot(vs,aes(x =month, group=`AREA NAME`, color = `AREA NAME`)) + geom_lin
 ggplotly(p)
 ```
 
-The occurrence of Vehicle Stolen happened in LA county are commonly increased from February to June. The most incidents happened in Newton, there are 208 time counts in June.
+Which area had most Vehicle Stolen incidents happened? 
 
-```{r, echo=FALSE}
+- From the chart, the occurrence of Vehicle Stolen happened in LA county are commonly increased from February to June. The most incidents happened in Newton, and the maximum count of the year is 208 time in June, Newton.
+
+<br>
+
+### 4. Scatter Plot: 
+
+<br>
+
+```{r, echo=FALSE, warning=FALSE}
 s <- sto[which(sto$`Vict Sex` != '' & sto$`Vict Sex` != 'X')]
 s <- sto[which(sto$`Vict Age` != 0 & sto$`Vict Age` != '')]
 ```
 
-
-
-### 4. Scatter Plot: 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 s %>% filter(`Vict Sex`!= 'X') %>%
   plot_ly(x = ~`AREA NAME`, y = ~`Vict Age`, 
           type = 'scatter', mode = 'markers', size = ~`TIME OCC`, sizes = c(10, 50),color = ~`Vict Sex`,
@@ -168,38 +195,59 @@ s %>% filter(`Vict Sex`!= 'X') %>%
          hovermode = "compare")
 ```
 
+- We can see the densest area would be Newton ,Mission and 77th street. It happened most related to 40-60 years old male owner.  
 
-```{r, echo=FALSE}
+```{r, include=FALSE, warning=FALSE}
 sto<- crime[which(crime$`Crm Cd Desc` == 'VEHICLE - STOLEN')]
-sto_loc <- (unique(sto[,c("LAT","LON")])) 
-dim(sto_loc)
-
+sto <- sto[which(sto$LAT!=0)]
+sto <- sto[which(sto$LON!=0)]
+a <- table(sto$`AREA NAME`)
+a_10 <- as.data.frame(head(sort(a, decreasing = TRUE),10))
+a_10
 ```
 
 
-### 5.Leaflet: Crime of Vehicle stolen
-```{r, echo=FALSE}
-leaflet(sto_loc) %>%
+<br>
+
+
+
+
+
+### 5.Leaflet: Crime of Vehicle stolen in LA especially at Newton
+
+- In order to be able to see the location of the incident more intuitively, here is a leaflet for Crime of Vehicle stolen.
+```{r, echo=FALSE, warning=FALSE}
+colorplot <- if_else(sto$`AREA NAME` == 'Newton',"red","blue")
+leaflet(sto) %>%
   addProviderTiles('OpenStreetMap') %>%
-  addCircles(lat=~LAT ,lng=~LON, radius=0.01)
+  addCircles(lat=~LAT ,lng=~LON, radius=0.01,color = colorplot, fillColor = colorplot)
 ```
-The most vehicle stolen incident happened in Newton, and the second high risk place is 77th Street.  
+
+
+The most vehicle stolen incident happened in Newton, and the second high risk place is 77th Street. We should take precautions of these area, and remember to lock our car well.
 
 <br>
 
 ### 6. Summary Table for Battery incident happened in LA county
 
-```{r, echo=FALSE}
+- For browsing more details for the daily crime'Robbery' happened in LA, here is the summary table. We can see every details here, like the victim age, sex and weapon they used. I select our age group(18-24), which is the college student age, to see if we live the area that happened the robbery incident, and remind people in our age should pay attention on this.
+
+```{r, echo=FALSE, warning=FALSE}
 library(DT)
-bat <- crime[which(crime$'Crm Cd Desc' == 'BATTERY - SIMPLE ASSAULT')]
+bat <- crime[which(crime$'Crm Cd Desc' == 'ROBBERY')]
 bat_new<- bat[which(bat$`Vict Sex` != '' & bat$`Vict Sex` != 'X')]
-bat_new<- bat_new[which(bat_new$`Vict Age` != 0 & bat_new$`Vict Age` != '')]
+bat_new<- bat_new[which(bat_new$`Vict Age`>18 & `Vict Age`<24)]
 rs <- bat_new %>% select(`DATE OCC`, `AREA NAME`, `Vict Age`,`Vict Sex`,`Weapon Desc`)
 datatable(rs)
 ```
+
 
 <br>
 
 ## Conclusion
 
-To sum up, the most dangerous area in city Los Angeles is 77th street. The most of crime incidents happened in LA county are VEHICLE - STOLEN, the second most incidents is battery- simple assault. The vehicle stolen happened in Newton the most. In general, female are more likely to become a target to the criminal suspects. The victim group is concentrated in the youth between 20 and 30 years old.The mean age of victims is 38. And the peak time of the criminal incident happens is in the early morning, and the security situation will get better since afternoon at 77th street in city Los Angeles.
+- To sum up, the most dangerous area in city Los Angeles is 77th street. The most of crime incidents happened in LA county are VEHICLE - STOLEN, the second most incidents is battery- simple assault. The vehicle stolen happened in Newton the most. In general, female are more likely to become a target to the criminal suspects. The victim group is concentrated in the youth between 20 and 30 years old.The mean age of victims is 38. And the peak time of the criminal incident happens is in the early morning, and the security situation will get better since afternoon at 77th street in city Los Angeles. Newton was the place happened most vehicle stolen incidents.The frequency of criminals are correlated to victims’ age, sex and the different locations.
+
+
+## PDF download link:
+
